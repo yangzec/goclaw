@@ -88,6 +88,7 @@
     "agentPlaceholder": "Chọn agent",
     "workstationPlaceholder": "Chọn workstation",
     "noAgents": "Không còn agent nào để liên kết",
+    "noWorkstations": "Không còn workstation nào để liên kết",
     "defaultLabel": "Mặc định cho agent này",
     "defaultBadge": "Mặc định",
     "setDefault": "Đặt mặc định",

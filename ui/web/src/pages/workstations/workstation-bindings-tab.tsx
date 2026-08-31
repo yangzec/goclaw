@@ -83,19 +83,23 @@ export function WorkstationBindingsTab({ workstationId }: WorkstationBindingsTab
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <div className="min-w-0 flex-1 space-y-1.5">
           <label className="text-sm font-medium">{t("bindings.agentLabel")}</label>
-          <Select value={agentId || undefined} onValueChange={setAgentId}>
-            <SelectTrigger className="w-full text-base md:text-sm">
-              <SelectValue placeholder={t("bindings.agentPlaceholder")} />
-            </SelectTrigger>
-            <SelectContent>
-              {availableAgents.map((a) => (
-                <SelectItem key={a.id} value={a.id}>
-                  {a.emoji ? `${a.emoji} ` : ""}
-                  {a.display_name || a.agent_key}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {availableAgents.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{t("bindings.noAgents")}</p>
+          ) : (
+            <Select value={agentId || undefined} onValueChange={setAgentId}>
+              <SelectTrigger className="w-full text-base md:text-sm">
+                <SelectValue placeholder={t("bindings.agentPlaceholder")} />
+              </SelectTrigger>
+              <SelectContent>
+                {availableAgents.map((a) => (
+                  <SelectItem key={a.id} value={a.id}>
+                    {a.emoji ? `${a.emoji} ` : ""}
+                    {a.display_name || a.agent_key}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
         <label className="flex items-center gap-2 pb-1 text-sm">
           <Switch checked={isDefault} onCheckedChange={setIsDefault} />

@@ -18,7 +18,7 @@ import { WorkstationBindingsTab } from "./workstation-bindings-tab";
 
 export function WorkstationsPage() {
   const { t } = useTranslation("workstations");
-  const { workstations, loading, refresh, createWorkstation, deleteWorkstation } = useWorkstations();
+  const { workstations, loading, error, refresh, createWorkstation, deleteWorkstation } = useWorkstations();
 
   const spinning = useMinLoading(loading);
   const isEmpty = workstations.length === 0;
@@ -54,6 +54,8 @@ export function WorkstationsPage() {
       <div className="mt-4">
         {showSkeleton ? (
           <TableSkeleton rows={4} />
+        ) : error ? (
+          <p className="text-sm text-destructive">{error}</p>
         ) : isEmpty ? (
           <EmptyState
             icon={MonitorCog}

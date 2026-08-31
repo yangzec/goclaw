@@ -53,6 +53,7 @@ export function Sidebar({ collapsed, onNavItemClick }: SidebarProps) {
   const { t } = useTranslation("sidebar");
   const { pendingCount } = usePendingPairingsCount();
   const role = useAuthStore((s) => s.role);
+  const edition = useAuthStore((s) => s.edition);
   const { isOwner } = useTenants();
   const isAdmin = role === "admin" || role === "owner";
   const branding = getRuntimeBranding();
@@ -106,7 +107,7 @@ export function Sidebar({ collapsed, onNavItemClick }: SidebarProps) {
             <SidebarItem to={ROUTES.WEBHOOKS} icon={Cable} label={t("nav.webhooks")} collapsed={collapsed} />
           )}
           <SidebarItem to={ROUTES.NODES} icon={Link} label={t("nav.nodes")} collapsed={collapsed} badge={pendingCount} />
-          {isAdmin && (
+          {isAdmin && edition !== "lite" && (
             <SidebarItem to={ROUTES.WORKSTATIONS} icon={MonitorCog} label={t("nav.workstations")} collapsed={collapsed} />
           )}
         </SidebarGroup>

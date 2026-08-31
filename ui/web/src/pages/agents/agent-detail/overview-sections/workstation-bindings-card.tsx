@@ -67,18 +67,22 @@ export function WorkstationBindingsCard({ agentId }: WorkstationBindingsCardProp
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <div className="min-w-0 flex-1">
-          <Select value={workstationId || undefined} onValueChange={setWorkstationId} disabled={wsLoading}>
-            <SelectTrigger className="w-full text-base md:text-sm">
-              <SelectValue placeholder={t("bindings.workstationPlaceholder")} />
-            </SelectTrigger>
-            <SelectContent>
-              {available.map((ws) => (
-                <SelectItem key={ws.id} value={ws.id}>
-                  {ws.name} ({ws.workstationKey})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {available.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{t("bindings.noWorkstations")}</p>
+          ) : (
+            <Select value={workstationId || undefined} onValueChange={setWorkstationId} disabled={wsLoading}>
+              <SelectTrigger className="w-full text-base md:text-sm">
+                <SelectValue placeholder={t("bindings.workstationPlaceholder")} />
+              </SelectTrigger>
+              <SelectContent>
+                {available.map((ws) => (
+                  <SelectItem key={ws.id} value={ws.id}>
+                    {ws.name} ({ws.workstationKey})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
         <label className="flex items-center gap-2 pb-1 text-sm">
           <Switch checked={isDefault} onCheckedChange={setIsDefault} />

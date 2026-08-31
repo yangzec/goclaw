@@ -68,6 +68,7 @@
     "agentPlaceholder": "Выберите агента",
     "workstationPlaceholder": "Выберите рабочую станцию",
     "noAgents": "Нет доступных агентов для привязки",
+    "noWorkstations": "Нет доступных рабочих станций для привязки",
     "defaultLabel": "По умолчанию для этого агента",
     "defaultBadge": "По умолчанию",
     "setDefault": "Сделать основной",

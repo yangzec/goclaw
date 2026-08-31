@@ -6,6 +6,10 @@ import {
 } from "../workstation-create-dialog-helpers";
 import { buildLinkAgentPayload, type WorkstationLink } from "../hooks/use-workstation-links";
 import type { Workstation } from "../hooks/use-workstations";
+import enWorkstations from "@/i18n/locales/en/workstations.json";
+import viWorkstations from "@/i18n/locales/vi/workstations.json";
+import zhWorkstations from "@/i18n/locales/zh/workstations.json";
+import ruWorkstations from "@/i18n/locales/ru/workstations.json";
 
 function form(overrides: Partial<WorkstationCreateFormState> = {}): WorkstationCreateFormState {
   return {
@@ -176,5 +180,14 @@ describe("workstation binding contract", () => {
     expect(link.displayName).toBe("Coder");
     expect(link.workstationKey).toBe("dev-server");
     expect(link.isDefault).toBe(true);
+  });
+
+  it("keeps empty-bind copy keys so the dropdown never goes blank", () => {
+    // These keys are shown when every agent/workstation is already bound.
+    // Missing keys render the raw path and look like a stuck form.
+    for (const catalog of [enWorkstations, viWorkstations, zhWorkstations, ruWorkstations]) {
+      expect(catalog.bindings.noAgents.length).toBeGreaterThan(0);
+      expect(catalog.bindings.noWorkstations.length).toBeGreaterThan(0);
+    }
   });
 });
