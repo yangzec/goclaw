@@ -67,7 +67,7 @@ export function WorkstationBindingsCard({ agentId }: WorkstationBindingsCardProp
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <div className="min-w-0 flex-1">
-          <Select value={workstationId} onValueChange={setWorkstationId} disabled={wsLoading}>
+          <Select value={workstationId || undefined} onValueChange={setWorkstationId} disabled={wsLoading}>
             <SelectTrigger className="w-full text-base md:text-sm">
               <SelectValue placeholder={t("bindings.workstationPlaceholder")} />
             </SelectTrigger>

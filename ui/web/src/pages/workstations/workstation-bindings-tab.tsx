@@ -83,7 +83,7 @@ export function WorkstationBindingsTab({ workstationId }: WorkstationBindingsTab
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <div className="min-w-0 flex-1 space-y-1.5">
           <label className="text-sm font-medium">{t("bindings.agentLabel")}</label>
-          <Select value={agentId} onValueChange={setAgentId}>
+          <Select value={agentId || undefined} onValueChange={setAgentId}>
             <SelectTrigger className="w-full text-base md:text-sm">
               <SelectValue placeholder={t("bindings.agentPlaceholder")} />
             </SelectTrigger>
