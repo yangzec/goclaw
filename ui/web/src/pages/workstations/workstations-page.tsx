@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { MonitorCog, Plus, RefreshCw, Trash2, ChevronDown, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import { formatDate } from "@/lib/format";
 import { useWorkstations, type Workstation } from "./hooks/use-workstations";
 import { WorkstationCreateDialog } from "./workstation-create-dialog";
 import { WorkstationActivityTab } from "./workstation-activity-tab";
+import { WorkstationBindingsTab } from "./workstation-bindings-tab";
 
 export function WorkstationsPage() {
   const { t } = useTranslation("workstations");
@@ -77,9 +78,8 @@ export function WorkstationsPage() {
                 {workstations.map((ws) => {
                   const isExpanded = expandedId === ws.id;
                   return (
-                    <>
+                    <Fragment key={ws.id}>
                       <tr
-                        key={ws.id}
                         className="border-b last:border-0 hover:bg-muted/30 cursor-pointer"
                         onClick={() => toggleExpand(ws.id)}
                       >
@@ -116,12 +116,16 @@ export function WorkstationsPage() {
                         </td>
                       </tr>
                       {isExpanded && (
-                        <tr key={`${ws.id}-detail`} className="bg-muted/10">
+                        <tr className="bg-muted/10">
                           <td colSpan={7} className="px-4 py-4">
-                            <Tabs defaultValue="activity">
+                            <Tabs defaultValue="bindings">
                               <TabsList className="mb-3">
+                                <TabsTrigger value="bindings">{t("bindings.title")}</TabsTrigger>
                                 <TabsTrigger value="activity">{t("activity.title")}</TabsTrigger>
                               </TabsList>
+                              <TabsContent value="bindings">
+                                <WorkstationBindingsTab workstationId={ws.id} />
+                              </TabsContent>
                               <TabsContent value="activity">
                                 <WorkstationActivityTab workstationId={ws.id} />
                               </TabsContent>
@@ -129,7 +133,7 @@ export function WorkstationsPage() {
                           </td>
                         </tr>
                       )}
-                    </>
+                    </Fragment>
                   );
                 })}
               </tbody>

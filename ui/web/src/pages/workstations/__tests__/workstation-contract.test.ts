@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { Methods } from "@/api/protocol";
 import {
   buildWorkstationCreatePayload,
   type WorkstationCreateFormState,
 } from "../workstation-create-dialog-helpers";
+import { buildLinkAgentPayload, type WorkstationLink } from "../hooks/use-workstation-links";
 import type { Workstation } from "../hooks/use-workstations";
 
 function form(overrides: Partial<WorkstationCreateFormState> = {}): WorkstationCreateFormState {
@@ -131,5 +133,48 @@ describe("workstation list contract", () => {
     expect(Number.isNaN(new Date(ws.createdAt).getTime())).toBe(false);
     expect(ws.name).toBe("Aether");
     expect(ws.active).toBe(true);
+  });
+});
+
+describe("workstation binding contract", () => {
+  it("uses camelCase method names the gateway router registers", () => {
+    // Regression: snake_case constants never reached handleLinkAgent / handleUnlinkAgent.
+    expect(Methods.WORKSTATIONS_LINK_AGENT).toBe("workstations.linkAgent");
+    expect(Methods.WORKSTATIONS_UNLINK_AGENT).toBe("workstations.unlinkAgent");
+    expect(Methods.WORKSTATIONS_LIST_LINKS).toBe("workstations.listLinks");
+    expect(Methods.WORKSTATIONS_SET_DEFAULT).toBe("workstations.setDefault");
+  });
+
+  it("submits camelCase link params the gateway handler decodes", () => {
+    expect(buildLinkAgentPayload({
+      agentId: "8f2b0f7e-1c4a-4c9e-9f1a-2b3c4d5e6f70",
+      workstationId: "11111111-2222-3333-4444-555555555555",
+      isDefault: true,
+    })).toEqual({
+      agentId: "8f2b0f7e-1c4a-4c9e-9f1a-2b3c4d5e6f70",
+      workstationId: "11111111-2222-3333-4444-555555555555",
+      isDefault: true,
+    });
+  });
+
+  it("resolves every field the bindings table renders", () => {
+    const apiResponse = {
+      agentId: "8f2b0f7e-1c4a-4c9e-9f1a-2b3c4d5e6f70",
+      agentKey: "coder",
+      displayName: "Coder",
+      emoji: "🦊",
+      workstationId: "11111111-2222-3333-4444-555555555555",
+      workstationKey: "dev-server",
+      workstationName: "Dev Server",
+      isDefault: true,
+      createdAt: "2026-08-31T00:00:00Z",
+    } as const;
+    const link: WorkstationLink = apiResponse;
+
+    expect(link.agentId).toBe(apiResponse.agentId);
+    expect(link.agentKey).toBe("coder");
+    expect(link.displayName).toBe("Coder");
+    expect(link.workstationKey).toBe("dev-server");
+    expect(link.isDefault).toBe(true);
   });
 });

@@ -81,6 +81,35 @@
     "success": "Connection successful",
     "notImplemented": "Connection test is not yet available"
   },
+  "bindings": {
+    "title": "Agent bindings",
+    "agentCardHint": "Default workstation used when the agent runs remote commands without an explicit workstation_id.",
+    "agentLabel": "Agent",
+    "agentPlaceholder": "Select an agent",
+    "workstationPlaceholder": "Select a workstation",
+    "noAgents": "No unbound agents available",
+    "defaultLabel": "Default for this agent",
+    "defaultBadge": "Default",
+    "setDefault": "Set default",
+    "add": "Bind",
+    "unlink": "Unbind",
+    "unlinkTitle": "Unbind agent",
+    "unlinkDescription": "Remove the binding for {{name}}? The agent will no longer use this workstation as a default.",
+    "empty": "No agents are bound to this workstation yet.",
+    "columns": {
+      "agent": "Agent",
+      "key": "Key",
+      "default": "Default"
+    },
+    "toast": {
+      "linked": "Agent bound",
+      "linkFailed": "Failed to bind agent",
+      "unlinked": "Agent unbound",
+      "unlinkFailed": "Failed to unbind agent",
+      "defaultSet": "Default workstation updated",
+      "defaultFailed": "Failed to set default workstation"
+    }
+  },
   "activity": {
     "title": "Recent Activity",
     "emptyTitle": "No activity yet",
