@@ -4,6 +4,12 @@
   "addWorkstation": "添加工作站",
   "emptyTitle": "暂无工作站",
   "emptyDescription": "添加工作站以允许 Agent 在远程机器上运行命令。",
+  "liteUnavailableTitle": "Lite 版不支持工作站",
+  "liteUnavailableDescription": "升级到 Standard 后才能注册远程工作站并绑定 Agent。",
+  "pageToast": {
+    "deleted": "工作站已删除",
+    "deleteFailed": "删除工作站失败"
+  },
   "backend": {
     "ssh": "SSH",
     "docker": "Docker"
@@ -80,6 +86,36 @@
   "testResult": {
     "success": "连接成功",
     "notImplemented": "连接测试功能暂未开放"
+  },
+  "bindings": {
+    "title": "Agent 绑定",
+    "agentCardHint": "Agent 执行远程命令且未指定 workstation_id 时，使用这里的默认工作站。",
+    "agentLabel": "Agent",
+    "agentPlaceholder": "选择 Agent",
+    "workstationPlaceholder": "选择工作站",
+    "noAgents": "没有可绑定的 Agent",
+    "noWorkstations": "没有可绑定的工作站",
+    "defaultLabel": "设为该 Agent 的默认工作站",
+    "defaultBadge": "默认",
+    "setDefault": "设为默认",
+    "add": "绑定",
+    "unlink": "解除绑定",
+    "unlinkTitle": "解除 Agent 绑定",
+    "unlinkDescription": "解除「{{name}}」的绑定？该 Agent 将不再把此工作站当作默认执行目标。",
+    "empty": "尚未绑定任何 Agent。",
+    "columns": {
+      "agent": "Agent",
+      "key": "键名",
+      "default": "默认"
+    },
+    "toast": {
+      "linked": "已绑定 Agent",
+      "linkFailed": "绑定 Agent 失败",
+      "unlinked": "已解除绑定",
+      "unlinkFailed": "解除绑定失败",
+      "defaultSet": "默认工作站已更新",
+      "defaultFailed": "设置默认工作站失败"
+    }
   },
   "activity": {
     "title": "近期活动",

@@ -770,6 +770,9 @@ func runGateway() {
 	// Lite (desktop/SQLite) must NOT expose workstation RPC methods.
 	if edition.Current().Name != "lite" && pgStores.Workstations != nil && pgStores.WorkstationLinks != nil {
 		wsMethods := methods.NewWorkstationsMethods(pgStores.Workstations, pgStores.WorkstationLinks)
+		if pgStores.Agents != nil {
+			wsMethods.SetAgentStore(pgStores.Agents)
+		}
 		if pgStores.WorkstationPermissions != nil {
 			wsMethods.SetPermStore(pgStores.WorkstationPermissions)
 		}

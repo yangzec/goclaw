@@ -4,6 +4,12 @@
   "addWorkstation": "Thêm Workstation",
   "emptyTitle": "Chưa có workstation nào",
   "emptyDescription": "Thêm workstation để cho phép agent chạy lệnh trên máy từ xa.",
+  "liteUnavailableTitle": "Lite không hỗ trợ workstation",
+  "liteUnavailableDescription": "Nâng cấp lên Standard để đăng ký workstation từ xa và liên kết agent.",
+  "pageToast": {
+    "deleted": "Đã xóa workstation",
+    "deleteFailed": "Xóa workstation thất bại"
+  },
   "backend": {
     "ssh": "SSH",
     "docker": "Docker"
@@ -80,6 +86,36 @@
   "testResult": {
     "success": "Kết nối thành công",
     "notImplemented": "Tính năng kiểm tra kết nối chưa khả dụng"
+  },
+  "bindings": {
+    "title": "Liên kết agent",
+    "agentCardHint": "Workstation mặc định khi agent chạy lệnh từ xa mà không truyền workstation_id.",
+    "agentLabel": "Agent",
+    "agentPlaceholder": "Chọn agent",
+    "workstationPlaceholder": "Chọn workstation",
+    "noAgents": "Không còn agent nào để liên kết",
+    "noWorkstations": "Không còn workstation nào để liên kết",
+    "defaultLabel": "Mặc định cho agent này",
+    "defaultBadge": "Mặc định",
+    "setDefault": "Đặt mặc định",
+    "add": "Liên kết",
+    "unlink": "Hủy liên kết",
+    "unlinkTitle": "Hủy liên kết agent",
+    "unlinkDescription": "Hủy liên kết của {{name}}? Agent sẽ không còn dùng workstation này làm mặc định.",
+    "empty": "Chưa có agent nào được liên kết với workstation này.",
+    "columns": {
+      "agent": "Agent",
+      "key": "Khóa",
+      "default": "Mặc định"
+    },
+    "toast": {
+      "linked": "Đã liên kết agent",
+      "linkFailed": "Không liên kết được agent",
+      "unlinked": "Đã hủy liên kết",
+      "unlinkFailed": "Không hủy liên kết được",
+      "defaultSet": "Đã cập nhật workstation mặc định",
+      "defaultFailed": "Không đặt được workstation mặc định"
+    }
   },
   "activity": {
     "title": "Hoạt động gần đây",

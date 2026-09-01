@@ -15,6 +15,7 @@ import { CapabilitiesSection } from "./overview-sections/capabilities-section";
 import { ChatGPTOAuthRoutingSummarySection } from "./overview-sections/chatgpt-oauth-routing-summary-section";
 import { HeartbeatCard } from "./overview-sections/heartbeat-card";
 import { HooksSummaryCard } from "./overview-sections/hooks-summary-card";
+import { WorkstationBindingsCard } from "./overview-sections/workstation-bindings-card";
 import { MemorySection } from "./config-sections";
 import type { UseAgentHeartbeatReturn } from "../hooks/use-agent-heartbeat";
 
@@ -177,6 +178,8 @@ export function AgentOverviewTab({ agent, onUpdate, heartbeat, onManageCodexPool
         onViewAll={onViewHooks}
         onAddHook={onAddHook}
       />
+
+      <WorkstationBindingsCard agentId={agent.id} />
 
       <SkillsSection agentId={agent.id} />
       <PinnedSkillsSection agent={agent} onUpdate={onUpdate} />

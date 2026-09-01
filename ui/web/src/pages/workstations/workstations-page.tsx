@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { MonitorCog, Plus, RefreshCw, Trash2, ChevronDown, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -11,13 +11,21 @@ import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { useMinLoading } from "@/hooks/use-min-loading";
 import { useDeferredLoading } from "@/hooks/use-deferred-loading";
 import { formatDate } from "@/lib/format";
+import { useAuthStore } from "@/stores/use-auth-store";
+import { toast } from "@/stores/use-toast-store";
+import { userFriendlyError } from "@/lib/error-utils";
 import { useWorkstations, type Workstation } from "./hooks/use-workstations";
 import { WorkstationCreateDialog } from "./workstation-create-dialog";
 import { WorkstationActivityTab } from "./workstation-activity-tab";
+import { WorkstationBindingsTab } from "./workstation-bindings-tab";
 
 export function WorkstationsPage() {
   const { t } = useTranslation("workstations");
-  const { workstations, loading, refresh, createWorkstation, deleteWorkstation } = useWorkstations();
+  const edition = useAuthStore((s) => s.edition);
+  const isLite = edition === "lite";
+  const { workstations, loading, error, refresh, createWorkstation, deleteWorkstation } = useWorkstations({
+    enabled: !isLite,
+  });
 
   const spinning = useMinLoading(loading);
   const isEmpty = workstations.length === 0;
@@ -29,6 +37,21 @@ export function WorkstationsPage() {
 
   function toggleExpand(id: string) {
     setExpandedId((prev) => (prev === id ? null : id));
+  }
+
+  if (isLite) {
+    return (
+      <div className="p-4 sm:p-6 pb-10">
+        <PageHeader title={t("title")} description={t("description")} />
+        <div className="mt-4">
+          <EmptyState
+            icon={MonitorCog}
+            title={t("liteUnavailableTitle")}
+            description={t("liteUnavailableDescription")}
+          />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -53,6 +76,8 @@ export function WorkstationsPage() {
       <div className="mt-4">
         {showSkeleton ? (
           <TableSkeleton rows={4} />
+        ) : error ? (
+          <p className="text-sm text-destructive">{error}</p>
         ) : isEmpty ? (
           <EmptyState
             icon={MonitorCog}
@@ -77,9 +102,8 @@ export function WorkstationsPage() {
                 {workstations.map((ws) => {
                   const isExpanded = expandedId === ws.id;
                   return (
-                    <>
+                    <Fragment key={ws.id}>
                       <tr
-                        key={ws.id}
                         className="border-b last:border-0 hover:bg-muted/30 cursor-pointer"
                         onClick={() => toggleExpand(ws.id)}
                       >
@@ -116,12 +140,16 @@ export function WorkstationsPage() {
                         </td>
                       </tr>
                       {isExpanded && (
-                        <tr key={`${ws.id}-detail`} className="bg-muted/10">
+                        <tr className="bg-muted/10">
                           <td colSpan={7} className="px-4 py-4">
-                            <Tabs defaultValue="activity">
+                            <Tabs defaultValue="bindings">
                               <TabsList className="mb-3">
+                                <TabsTrigger value="bindings">{t("bindings.title")}</TabsTrigger>
                                 <TabsTrigger value="activity">{t("activity.title")}</TabsTrigger>
                               </TabsList>
+                              <TabsContent value="bindings">
+                                <WorkstationBindingsTab workstationId={ws.id} />
+                              </TabsContent>
                               <TabsContent value="activity">
                                 <WorkstationActivityTab workstationId={ws.id} />
                               </TabsContent>
@@ -129,7 +157,7 @@ export function WorkstationsPage() {
                           </td>
                         </tr>
                       )}
-                    </>
+                    </Fragment>
                   );
                 })}
               </tbody>
@@ -142,7 +170,8 @@ export function WorkstationsPage() {
         open={createOpen}
         onOpenChange={setCreateOpen}
         onCreate={async (params) => {
-          await createWorkstation(params);
+          const created = await createWorkstation(params);
+          if (created?.id) setExpandedId(created.id);
         }}
       />
 
@@ -155,8 +184,14 @@ export function WorkstationsPage() {
           confirmLabel={t("deleteDialog.confirmLabel")}
           variant="destructive"
           onConfirm={async () => {
-            await deleteWorkstation(deleteTarget.id);
-            setDeleteTarget(null);
+            try {
+              await deleteWorkstation(deleteTarget.id);
+              if (expandedId === deleteTarget.id) setExpandedId(null);
+              setDeleteTarget(null);
+              toast.success(t("pageToast.deleted"));
+            } catch (err) {
+              toast.error(t("pageToast.deleteFailed"), userFriendlyError(err));
+            }
           }}
         />
       )}

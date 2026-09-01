@@ -34,7 +34,8 @@ export interface UpdateWorkstationParams {
   metadata?: Record<string, unknown>;
 }
 
-export function useWorkstations() {
+export function useWorkstations(options?: { enabled?: boolean }) {
+  const enabled = options?.enabled ?? true;
   const ws = useWs();
   const connected = useAuthStore((s) => s.connected);
   const [workstations, setWorkstations] = useState<Workstation[]>([]);
@@ -42,7 +43,7 @@ export function useWorkstations() {
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    if (!connected) return;
+    if (!connected || !enabled) return;
     setLoading(true);
     setError(null);
     try {
@@ -53,11 +54,11 @@ export function useWorkstations() {
     } finally {
       setLoading(false);
     }
-  }, [ws, connected]);
+  }, [ws, connected, enabled]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    if (enabled) load();
+  }, [load, enabled]);
 
   const createWorkstation = useCallback(
     async (params: CreateWorkstationParams): Promise<Workstation> => {
