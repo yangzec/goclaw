@@ -8,6 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { useAgents } from "@/pages/agents/hooks/use-agents";
 import { useWorkstationLinks, type WorkstationLink } from "./hooks/use-workstation-links";
+import {
+  availableAgentsForBind,
+  bindButtonEnabled,
+  bindFormAfterSuccess,
+  bindPickerView,
+} from "./binding-results";
 
 interface WorkstationBindingsTabProps {
   workstationId: string;
@@ -20,13 +26,14 @@ function agentLabel(link: WorkstationLink): string {
 
 export function WorkstationBindingsTab({ workstationId }: WorkstationBindingsTabProps) {
   const { t } = useTranslation("workstations");
-  const { agents, refresh: refreshAgents } = useAgents();
+  const { agents, loading: agentsLoading, error: agentsError, refresh: refreshAgents } = useAgents();
   const { links, loading, error, load, linkAgent, unlinkAgent, setDefault } = useWorkstationLinks();
 
   const [agentId, setAgentId] = useState("");
   const [isDefault, setIsDefault] = useState(true);
   const [saving, setSaving] = useState(false);
   const [unlinkTarget, setUnlinkTarget] = useState<WorkstationLink | null>(null);
+  const [unlinking, setUnlinking] = useState(false);
 
   useEffect(() => {
     refreshAgents();
@@ -36,19 +43,17 @@ export function WorkstationBindingsTab({ workstationId }: WorkstationBindingsTab
     load({ workstationId });
   }, [workstationId, load]);
 
-  const boundIds = useMemo(() => new Set(links.map((l) => l.agentId)), [links]);
-  const availableAgents = useMemo(
-    () => agents.filter((a) => a.status === "active" && !boundIds.has(a.id)),
-    [agents, boundIds],
-  );
+  const availableAgents = useMemo(() => availableAgentsForBind(agents, links), [agents, links]);
+  const picker = bindPickerView(agentsLoading, agentsError, availableAgents.length);
 
   async function handleBind() {
     if (!agentId) return;
     setSaving(true);
     try {
       await linkAgent({ agentId, workstationId, isDefault });
-      setAgentId("");
-      setIsDefault(true);
+      const next = bindFormAfterSuccess();
+      setAgentId(next.selectedId);
+      setIsDefault(next.isDefault);
       await load({ workstationId });
     } catch {
       // toast handled by hook
@@ -69,12 +74,15 @@ export function WorkstationBindingsTab({ workstationId }: WorkstationBindingsTab
 
   async function handleUnlink() {
     if (!unlinkTarget) return;
+    setUnlinking(true);
     try {
       await unlinkAgent({ agentId: unlinkTarget.agentId, workstationId });
       setUnlinkTarget(null);
       await load({ workstationId });
     } catch {
       // toast handled by hook
+    } finally {
+      setUnlinking(false);
     }
   }
 
@@ -83,7 +91,13 @@ export function WorkstationBindingsTab({ workstationId }: WorkstationBindingsTab
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <div className="min-w-0 flex-1 space-y-1.5">
           <label className="text-sm font-medium">{t("bindings.agentLabel")}</label>
-          {availableAgents.length === 0 ? (
+          {picker === "loading" ? (
+            <p className="text-sm text-muted-foreground">
+              <Loader2 className="mr-1 inline h-3.5 w-3.5 animate-spin" />
+            </p>
+          ) : picker === "error" ? (
+            <p className="text-sm text-destructive">{agentsError}</p>
+          ) : picker === "empty" ? (
             <p className="text-sm text-muted-foreground">{t("bindings.noAgents")}</p>
           ) : (
             <Select value={agentId || undefined} onValueChange={setAgentId}>
@@ -105,7 +119,7 @@ export function WorkstationBindingsTab({ workstationId }: WorkstationBindingsTab
           <Switch checked={isDefault} onCheckedChange={setIsDefault} />
           {t("bindings.defaultLabel")}
         </label>
-        <Button size="sm" className="gap-1.5" disabled={!agentId || saving} onClick={handleBind}>
+        <Button size="sm" className="gap-1.5" disabled={!bindButtonEnabled(agentId, saving)} onClick={handleBind}>
           {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
           {t("bindings.add")}
         </Button>
@@ -113,7 +127,10 @@ export function WorkstationBindingsTab({ workstationId }: WorkstationBindingsTab
           variant="outline"
           size="sm"
           className="gap-1"
-          onClick={() => load({ workstationId })}
+          onClick={() => {
+            refreshAgents();
+            load({ workstationId });
+          }}
           disabled={loading}
         >
           <RefreshCw className={"h-3.5 w-3.5" + (loading ? " animate-spin" : "")} />
@@ -204,6 +221,7 @@ export function WorkstationBindingsTab({ workstationId }: WorkstationBindingsTab
           description={t("bindings.unlinkDescription", { name: agentLabel(unlinkTarget) })}
           confirmLabel={t("bindings.unlink")}
           variant="destructive"
+          loading={unlinking}
           onConfirm={handleUnlink}
         />
       )}

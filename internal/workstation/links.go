@@ -76,7 +76,9 @@ func BindAgent(
 }
 
 // UnbindAgent removes an agent↔workstation link after verifying the workstation
-// belongs to the caller's tenant.
+// belongs to the caller's tenant. If the removed row was the agent's default and
+// other links remain, the first remaining link is promoted so workstation_exec
+// still has a default without an explicit workstation_id.
 func UnbindAgent(
 	ctx context.Context,
 	wsStore workstationLookup,
@@ -89,7 +91,28 @@ func UnbindAgent(
 		}
 		return err
 	}
-	return links.Unlink(ctx, agentID, workstationID)
+	existing, err := links.ListForAgent(ctx, agentID)
+	if err != nil {
+		return err
+	}
+	wasDefault := false
+	remainingID := uuid.Nil
+	for i := range existing {
+		if existing[i].WorkstationID == workstationID {
+			wasDefault = existing[i].IsDefault
+			continue
+		}
+		if remainingID == uuid.Nil {
+			remainingID = existing[i].WorkstationID
+		}
+	}
+	if err := links.Unlink(ctx, agentID, workstationID); err != nil {
+		return err
+	}
+	if wasDefault && remainingID != uuid.Nil {
+		return links.SetDefault(ctx, agentID, remainingID)
+	}
+	return nil
 }
 
 // SetDefaultBinding marks workstationID as the agent's default after verifying

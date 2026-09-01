@@ -4,6 +4,12 @@
   "addWorkstation": "Add Workstation",
   "emptyTitle": "No workstations configured",
   "emptyDescription": "Add a workstation to allow agents to run commands on remote machines.",
+  "liteUnavailableTitle": "Workstations are not available in Lite",
+  "liteUnavailableDescription": "Upgrade to Standard to register remote workstations and bind them to agents.",
+  "pageToast": {
+    "deleted": "Workstation deleted",
+    "deleteFailed": "Failed to delete workstation"
+  },
   "backend": {
     "ssh": "SSH",
     "docker": "Docker"

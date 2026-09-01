@@ -4,6 +4,12 @@
   "addWorkstation": "Thêm Workstation",
   "emptyTitle": "Chưa có workstation nào",
   "emptyDescription": "Thêm workstation để cho phép agent chạy lệnh trên máy từ xa.",
+  "liteUnavailableTitle": "Lite không hỗ trợ workstation",
+  "liteUnavailableDescription": "Nâng cấp lên Standard để đăng ký workstation từ xa và liên kết agent.",
+  "pageToast": {
+    "deleted": "Đã xóa workstation",
+    "deleteFailed": "Xóa workstation thất bại"
+  },
   "backend": {
     "ssh": "SSH",
     "docker": "Docker"

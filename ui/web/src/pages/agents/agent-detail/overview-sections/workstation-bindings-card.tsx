@@ -6,8 +6,15 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuthStore } from "@/stores/use-auth-store";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { useWorkstations } from "@/pages/workstations/hooks/use-workstations";
-import { useWorkstationLinks } from "@/pages/workstations/hooks/use-workstation-links";
+import { useWorkstationLinks, type WorkstationLink } from "@/pages/workstations/hooks/use-workstation-links";
+import {
+  availableWorkstationsForBind,
+  bindButtonEnabled,
+  bindFormAfterSuccess,
+  bindPickerView,
+} from "@/pages/workstations/binding-results";
 
 interface WorkstationBindingsCardProps {
   agentId: string;
@@ -20,11 +27,13 @@ export function WorkstationBindingsCard({ agentId }: WorkstationBindingsCardProp
   const isAdmin = role === "admin" || role === "owner";
 
   const canManage = isAdmin && edition !== "lite";
-  const { workstations, loading: wsLoading } = useWorkstations({ enabled: canManage });
+  const { workstations, loading: wsLoading, error: wsError } = useWorkstations({ enabled: canManage });
   const { links, loading, error, load, linkAgent, unlinkAgent, setDefault } = useWorkstationLinks();
   const [workstationId, setWorkstationId] = useState("");
   const [isDefault, setIsDefault] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [unlinkTarget, setUnlinkTarget] = useState<WorkstationLink | null>(null);
+  const [unlinking, setUnlinking] = useState(false);
 
   useEffect(() => {
     if (canManage) {
@@ -32,11 +41,11 @@ export function WorkstationBindingsCard({ agentId }: WorkstationBindingsCardProp
     }
   }, [agentId, canManage, load]);
 
-  const boundIds = useMemo(() => new Set(links.map((l) => l.workstationId)), [links]);
   const available = useMemo(
-    () => workstations.filter((ws) => ws.active && !boundIds.has(ws.id)),
-    [workstations, boundIds],
+    () => availableWorkstationsForBind(workstations, links),
+    [workstations, links],
   );
+  const picker = bindPickerView(wsLoading, wsError, available.length);
 
   if (!canManage) {
     return null;
@@ -47,14 +56,33 @@ export function WorkstationBindingsCard({ agentId }: WorkstationBindingsCardProp
     setSaving(true);
     try {
       await linkAgent({ agentId, workstationId, isDefault });
-      setWorkstationId("");
-      setIsDefault(true);
+      const next = bindFormAfterSuccess();
+      setWorkstationId(next.selectedId);
+      setIsDefault(next.isDefault);
       await load({ agentId });
     } catch {
       // toast handled by hook
     } finally {
       setSaving(false);
     }
+  }
+
+  async function handleUnlink() {
+    if (!unlinkTarget) return;
+    setUnlinking(true);
+    try {
+      await unlinkAgent({ agentId, workstationId: unlinkTarget.workstationId });
+      setUnlinkTarget(null);
+      await load({ agentId });
+    } catch {
+      // toast handled by hook
+    } finally {
+      setUnlinking(false);
+    }
+  }
+
+  function workstationLabel(link: WorkstationLink): string {
+    return link.workstationName || link.workstationKey || link.workstationId;
   }
 
   return (
@@ -67,10 +95,16 @@ export function WorkstationBindingsCard({ agentId }: WorkstationBindingsCardProp
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <div className="min-w-0 flex-1">
-          {available.length === 0 ? (
+          {picker === "loading" ? (
+            <p className="text-sm text-muted-foreground">
+              <Loader2 className="mr-1 inline h-3.5 w-3.5 animate-spin" />
+            </p>
+          ) : picker === "error" ? (
+            <p className="text-sm text-destructive">{wsError}</p>
+          ) : picker === "empty" ? (
             <p className="text-sm text-muted-foreground">{t("bindings.noWorkstations")}</p>
           ) : (
-            <Select value={workstationId || undefined} onValueChange={setWorkstationId} disabled={wsLoading}>
+            <Select value={workstationId || undefined} onValueChange={setWorkstationId}>
               <SelectTrigger className="w-full text-base md:text-sm">
                 <SelectValue placeholder={t("bindings.workstationPlaceholder")} />
               </SelectTrigger>
@@ -88,7 +122,7 @@ export function WorkstationBindingsCard({ agentId }: WorkstationBindingsCardProp
           <Switch checked={isDefault} onCheckedChange={setIsDefault} />
           {t("bindings.defaultLabel")}
         </label>
-        <Button size="sm" className="gap-1.5" disabled={!workstationId || saving} onClick={handleBind}>
+        <Button size="sm" className="gap-1.5" disabled={!bindButtonEnabled(workstationId, saving)} onClick={handleBind}>
           {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
           {t("bindings.add")}
         </Button>
@@ -126,8 +160,12 @@ export function WorkstationBindingsCard({ agentId }: WorkstationBindingsCardProp
                     size="sm"
                     className="h-8 gap-1 text-xs"
                     onClick={async () => {
-                      await setDefault({ agentId, workstationId: link.workstationId });
-                      await load({ agentId });
+                      try {
+                        await setDefault({ agentId, workstationId: link.workstationId });
+                        await load({ agentId });
+                      } catch {
+                        // toast handled by hook
+                      }
                     }}
                   >
                     <Star className="h-3 w-3" />
@@ -138,10 +176,7 @@ export function WorkstationBindingsCard({ agentId }: WorkstationBindingsCardProp
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                  onClick={async () => {
-                    await unlinkAgent({ agentId, workstationId: link.workstationId });
-                    await load({ agentId });
-                  }}
+                  onClick={() => setUnlinkTarget(link)}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
@@ -149,6 +184,19 @@ export function WorkstationBindingsCard({ agentId }: WorkstationBindingsCardProp
             </li>
           ))}
         </ul>
+      )}
+
+      {unlinkTarget && (
+        <ConfirmDialog
+          open
+          onOpenChange={() => setUnlinkTarget(null)}
+          title={t("bindings.unlinkTitle")}
+          description={t("bindings.unlinkDescription", { name: workstationLabel(unlinkTarget) })}
+          confirmLabel={t("bindings.unlink")}
+          variant="destructive"
+          loading={unlinking}
+          onConfirm={handleUnlink}
+        />
       )}
     </div>
   );

@@ -129,6 +129,54 @@ func TestWorkstationsBinding_ViewerDenied(t *testing.T) {
 	}
 }
 
+func TestWorkstationsBinding_UnlinkPromotesRemainingDefault(t *testing.T) {
+	tid := uuid.Must(uuid.NewV7())
+	wsA := uuid.Must(uuid.NewV7())
+	wsB := uuid.Must(uuid.NewV7())
+	agentID := uuid.Must(uuid.NewV7())
+
+	wsStore := &bindWSStore{byID: map[uuid.UUID]*store.Workstation{
+		wsA: {ID: wsA, TenantID: tid, WorkstationKey: "a", Name: "A", Active: true},
+		wsB: {ID: wsB, TenantID: tid, WorkstationKey: "b", Name: "B", Active: true},
+	}}
+	agents := &bindAgentStub{byID: map[uuid.UUID]store.AgentData{
+		agentID: {BaseModel: store.BaseModel{ID: agentID}, AgentKey: "coder", DisplayName: "Coder"},
+	}}
+	links := &bindLinkStore{}
+	m := NewWorkstationsMethods(wsStore, links)
+	m.SetAgentStore(agents)
+	client, ch := gateway.NewCapturingTestClient(permissions.RoleAdmin, tid, "admin", 8)
+	ctx := wsCallCtx(client)
+
+	m.handleLinkAgent(ctx, client, bindReq(t, protocol.MethodWorkstationsLinkAgent, map[string]any{
+		"agentId": agentID.String(), "workstationId": wsA.String(), "isDefault": true,
+	}))
+	readPayload(t, ch)
+	m.handleLinkAgent(ctx, client, bindReq(t, protocol.MethodWorkstationsLinkAgent, map[string]any{
+		"agentId": agentID.String(), "workstationId": wsB.String(), "isDefault": false,
+	}))
+	readPayload(t, ch)
+
+	m.handleUnlinkAgent(ctx, client, bindReq(t, protocol.MethodWorkstationsUnlinkAgent, map[string]any{
+		"agentId": agentID.String(), "workstationId": wsA.String(),
+	}))
+	if unlinked := readPayload(t, ch); unlinked["unlinked"] != true {
+		t.Fatalf("unlink: %#v", unlinked)
+	}
+
+	m.handleListLinks(ctx, client, bindReq(t, protocol.MethodWorkstationsListLinks, map[string]any{
+		"agentId": agentID.String(),
+	}))
+	rows := asSlice(readPayload(t, ch)["links"])
+	if len(rows) != 1 {
+		t.Fatalf("expected remaining B, got %#v", rows)
+	}
+	row := rows[0].(map[string]any)
+	if row["workstationId"] != wsB.String() || row["isDefault"] != true {
+		t.Fatalf("remaining default should be B: %#v", row)
+	}
+}
+
 func TestWorkstationsBinding_MissingAgentIsNotFound(t *testing.T) {
 	tid := uuid.Must(uuid.NewV7())
 	wsID := uuid.Must(uuid.NewV7())

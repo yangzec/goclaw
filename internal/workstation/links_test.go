@@ -191,6 +191,59 @@ func TestSetDefaultBinding_RequiresExistingLink(t *testing.T) {
 	}
 }
 
+func TestUnbindAgent_PromotesRemainingDefault(t *testing.T) {
+	ctx := context.Background()
+	agentID := uuid.Must(uuid.NewV7())
+	wsA := uuid.Must(uuid.NewV7())
+	wsB := uuid.Must(uuid.NewV7())
+	wsStore := &fakeWSStore{byID: map[uuid.UUID]*store.Workstation{
+		wsA: {ID: wsA, WorkstationKey: "a", Name: "A"},
+		wsB: {ID: wsB, WorkstationKey: "b", Name: "B"},
+	}}
+	links := &fakeLinkStore{}
+	if err := BindAgent(ctx, wsStore, &fakeAgentStore{byID: map[uuid.UUID]store.AgentData{
+		agentID: {BaseModel: store.BaseModel{ID: agentID}, AgentKey: "coder"},
+	}}, links, agentID, wsA, true); err != nil {
+		t.Fatal(err)
+	}
+	if err := BindAgent(ctx, wsStore, &fakeAgentStore{byID: map[uuid.UUID]store.AgentData{
+		agentID: {BaseModel: store.BaseModel{ID: agentID}, AgentKey: "coder"},
+	}}, links, agentID, wsB, false); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := UnbindAgent(ctx, wsStore, links, agentID, wsA); err != nil {
+		t.Fatal(err)
+	}
+	if len(links.links) != 1 {
+		t.Fatalf("expected 1 remaining link, got %+v", links.links)
+	}
+	if links.links[0].WorkstationID != wsB || !links.links[0].IsDefault {
+		t.Fatalf("remaining link should become default: %+v", links.links[0])
+	}
+}
+
+func TestUnbindAgent_LastLinkLeavesNoDefault(t *testing.T) {
+	ctx := context.Background()
+	agentID := uuid.Must(uuid.NewV7())
+	wsID := uuid.Must(uuid.NewV7())
+	wsStore := &fakeWSStore{byID: map[uuid.UUID]*store.Workstation{
+		wsID: {ID: wsID, WorkstationKey: "a", Name: "A"},
+	}}
+	links := &fakeLinkStore{}
+	if err := BindAgent(ctx, wsStore, &fakeAgentStore{byID: map[uuid.UUID]store.AgentData{
+		agentID: {BaseModel: store.BaseModel{ID: agentID}, AgentKey: "coder"},
+	}}, links, agentID, wsID, true); err != nil {
+		t.Fatal(err)
+	}
+	if err := UnbindAgent(ctx, wsStore, links, agentID, wsID); err != nil {
+		t.Fatal(err)
+	}
+	if len(links.links) != 0 {
+		t.Fatalf("expected no links, got %+v", links.links)
+	}
+}
+
 func TestListBindings_FilterAndEnrichment(t *testing.T) {
 	ctx := context.Background()
 	agentID := uuid.Must(uuid.NewV7())

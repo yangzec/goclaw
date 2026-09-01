@@ -4,6 +4,12 @@
   "addWorkstation": "添加工作站",
   "emptyTitle": "暂无工作站",
   "emptyDescription": "添加工作站以允许 Agent 在远程机器上运行命令。",
+  "liteUnavailableTitle": "Lite 版不支持工作站",
+  "liteUnavailableDescription": "升级到 Standard 后才能注册远程工作站并绑定 Agent。",
+  "pageToast": {
+    "deleted": "工作站已删除",
+    "deleteFailed": "删除工作站失败"
+  },
   "backend": {
     "ssh": "SSH",
     "docker": "Docker"

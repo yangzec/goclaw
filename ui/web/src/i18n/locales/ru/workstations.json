@@ -4,6 +4,12 @@
   "addWorkstation": "Добавить рабочую станцию",
   "emptyTitle": "Рабочие станции не настроены",
   "emptyDescription": "Добавьте рабочую станцию, чтобы агенты могли выполнять команды на удалённых машинах.",
+  "liteUnavailableTitle": "Рабочие станции недоступны в Lite",
+  "liteUnavailableDescription": "Перейдите на Standard, чтобы регистрировать удалённые станции и привязывать агентов.",
+  "pageToast": {
+    "deleted": "Рабочая станция удалена",
+    "deleteFailed": "Не удалось удалить рабочую станцию"
+  },
   "backend": {
     "ssh": "SSH",
     "docker": "Docker"
